@@ -5,9 +5,15 @@
 [![Web Bluetooth](https://img.shields.io/badge/Web%20Bluetooth-API-4285F4.svg)](https://developer.chrome.com/docs/capabilities/bluetooth)
 [![PWA](https://img.shields.io/badge/PWA-offline%20ready-5A0FC8.svg)](https://web.dev/progressive-web-apps/)
 
+**[▶ Uruchom aplikację online](https://zworek.github.io/trikiscope-web/)**
+
 Przeglądarkowy oscyloskop BLE dla kapsla **Żabka Triki** — port projektu
 [TrikiScope](https://github.com/Maku-hub/TrikiScope) (Python/TUI) do Web Bluetooth API.
-Działa jako PWA: instaluje się jednym kliknięciem i pracuje w pełni offline po pierwszym załadowaniu.
+Zawiera manifest PWA i service worker — po załadowaniu z HTTPS można zainstalować ją jako aplikację i używać offline.
+
+> **Uwaga:** Projekt jest w znacznej mierze _vibe-coded_ — pisany szybko, z pomocą AI,
+> bez głębokiego przeglądu każdej linii. Działa, ale traktuj kod jako punkt wyjścia,
+> nie jako wzorzec produkcyjny.
 
 ## Co pokazuje
 
@@ -51,9 +57,11 @@ Następnie otwórz **http://localhost:8080** w Chrome lub Edge.
 
 ## Instalacja jako aplikacja (PWA)
 
-Po pierwszym załadowaniu Chrome/Edge pokaże ikonę **⊕** w pasku adresu.
-Po zainstalowaniu aplikacja otwiera się w trybie standalone (bez paska przeglądarki)
-i jest w pełni dostępna offline — przydatne przy pracy z kapslem z dala od sieci.
+Po załadowaniu z HTTPS (nie `localhost`) Chrome/Edge mogą pokazać ikonę **⊕** w pasku adresu
+lub opcję „Zainstaluj aplikację" w menu przeglądarki. Po zainstalowaniu aplikacja otwiera się
+w trybie standalone i jest dostępna offline.
+
+Na `localhost` service worker działa (cache, offline), ale przycisk instalacji zwykle się nie pojawia.
 
 ## Użytkowanie
 
