@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#212529">
   <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon.svg">
-  <title>TrikiScope</title>
+  <title>TrikiScope-Web</title>
   <link rel="stylesheet" href="vendor/bootstrap.min.css">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -14,14 +15,17 @@
 
 <nav class="navbar bg-body-tertiary border-bottom mb-3">
   <div class="container-fluid">
-    <span class="navbar-brand fw-bold mb-0">TrikiScope</span>
-    <small class="text-secondary">Bluetooth IMU oscilloscope</small>
+    <span class="navbar-brand fw-bold mb-0">TrikiScope-Web</span>
+    <div class="d-flex gap-2 ms-auto">
+      <button id="nav-scope" class="btn btn-sm btn-secondary">Oscilloscope</button>
+      <button id="nav-games" class="btn btn-sm btn-outline-secondary">🎮 Games</button>
+    </div>
   </div>
 </nav>
 
 <div class="container-fluid px-3 pb-5">
 
-  <!-- BLE card -->
+  <!-- Shared BLE card -->
   <div class="card mb-3">
     <div class="card-body d-flex flex-wrap align-items-center gap-2 py-2">
       <span id="status-dot" class="status-dot"></span>
@@ -40,175 +44,244 @@
     </div>
   </div>
 
-  <!-- Orientation | Events -->
-  <div class="row g-3 mb-3">
+  <!-- ── Oscilloscope view ──────────────────────────────────────────────────── -->
+  <div id="view-scope">
 
-    <!-- Orientation panel -->
-    <div class="col-lg-6">
-      <div class="card h-100">
-        <div class="card-header d-flex align-items-center gap-2">
-          <span class="fw-semibold">Orientation</span>
-          <div class="ms-auto d-flex gap-2">
-            <button id="btn-led" class="btn btn-sm btn-outline-warning" disabled>LED</button>
-            <button id="btn-reset-orient" class="btn btn-sm btn-outline-secondary" disabled>Reset zero</button>
+    <!-- Orientation | Live data -->
+    <div class="row g-3 mb-3">
+
+      <div class="col-lg-6">
+        <div class="card h-100">
+          <div class="card-header d-flex align-items-center gap-2">
+            <span class="fw-semibold">Orientation</span>
+            <div class="ms-auto d-flex gap-2">
+              <button id="btn-led" class="btn btn-sm btn-outline-warning" disabled>LED</button>
+              <button id="btn-reset-orient" class="btn btn-sm btn-outline-secondary" disabled>Reset zero</button>
+            </div>
           </div>
-        </div>
-        <div class="card-body">
-          <div id="scene-wrap">
-            <div id="scene">
-              <div id="box">
-                <div class="face front">Triki</div>
-                <div class="face back"></div>
-                <div class="face top"></div>
-                <div class="face bottom"></div>
-                <div class="face left"></div>
-                <div class="face right"></div>
+          <div class="card-body">
+            <div id="scene-wrap">
+              <div id="scene">
+                <div id="box">
+                  <div class="face front">Triki</div>
+                  <div class="face back"></div>
+                  <div class="face top"></div>
+                  <div class="face bottom"></div>
+                  <div class="face left"></div>
+                  <div class="face right"></div>
+                </div>
+              </div>
+              <div id="calib-overlay">CALIBRATING</div>
+            </div>
+            <div class="row text-center g-0 mt-2 pt-2 border-top">
+              <div class="col">
+                <div class="euler-label">Pitch</div>
+                <div class="euler-value font-monospace" id="val-pitch">0.0°</div>
+              </div>
+              <div class="col">
+                <div class="euler-label">Roll</div>
+                <div class="euler-value font-monospace" id="val-roll">0.0°</div>
+              </div>
+              <div class="col">
+                <div class="euler-label">Yaw</div>
+                <div class="euler-value font-monospace" id="val-yaw">0.0°</div>
               </div>
             </div>
-            <div id="calib-overlay">CALIBRATING</div>
           </div>
-          <div class="row text-center g-0 mt-2 pt-2 border-top">
-            <div class="col">
-              <div class="euler-label">Pitch</div>
-              <div class="euler-value font-monospace" id="val-pitch">0.0°</div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="card h-100">
+          <div class="card-header fw-semibold">Live data</div>
+          <div class="card-body">
+
+            <div class="d-flex flex-wrap gap-2 mb-3">
+              <span class="gesture-pill" id="pill-tap">TAP / IMPACT</span>
+              <span class="gesture-pill" id="pill-freefall">FREE-FALL</span>
+              <span class="gesture-pill" id="pill-shake">SHAKE</span>
+              <span class="gesture-pill" id="pill-spin">SPIN</span>
             </div>
-            <div class="col">
-              <div class="euler-label">Roll</div>
-              <div class="euler-value font-monospace" id="val-roll">0.0°</div>
+
+            <div class="d-flex align-items-center gap-2 mb-3 small text-secondary">
+              <span id="btn-indicator-dot" class="btn-indicator-dot"></span>
+              <span id="btn-indicator-label">Button</span>
             </div>
-            <div class="col">
-              <div class="euler-label">Yaw</div>
-              <div class="euler-value font-monospace" id="val-yaw">0.0°</div>
+
+            <div id="sensor-bars">
+              <div class="bar-group-label">Accelerometer (g) — range ±4</div>
+              <div class="bar-row">
+                <span class="bar-axis" style="color:#22c55e">X</span>
+                <div class="bar-track"><div class="bar-center-line"></div><div class="bar-fill" id="bar-ax"></div></div>
+                <span class="bar-num" id="num-ax">0.000 g</span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-axis" style="color:#3b82f6">Y</span>
+                <div class="bar-track"><div class="bar-center-line"></div><div class="bar-fill" id="bar-ay"></div></div>
+                <span class="bar-num" id="num-ay">0.000 g</span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-axis" style="color:#06b6d4">Z</span>
+                <div class="bar-track"><div class="bar-center-line"></div><div class="bar-fill" id="bar-az"></div></div>
+                <span class="bar-num" id="num-az">0.000 g</span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-axis" style="color:#64748b">|a|</span>
+                <div class="bar-track"><div class="bar-center-line"></div><div class="bar-fill accent" id="bar-am"></div></div>
+                <span class="bar-num" id="num-am">0.000 g</span>
+              </div>
+              <div class="bar-group-label">Gyroscope (dps) — range ±500</div>
+              <div class="bar-row">
+                <span class="bar-axis" style="color:#f59e0b">X</span>
+                <div class="bar-track"><div class="bar-center-line"></div><div class="bar-fill" id="bar-gx"></div></div>
+                <span class="bar-num" id="num-gx">0 dps</span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-axis" style="color:#a855f7">Y</span>
+                <div class="bar-track"><div class="bar-center-line"></div><div class="bar-fill" id="bar-gy"></div></div>
+                <span class="bar-num" id="num-gy">0 dps</span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-axis" style="color:#ef4444">Z</span>
+                <div class="bar-track"><div class="bar-center-line"></div><div class="bar-fill" id="bar-gz"></div></div>
+                <span class="bar-num" id="num-gz">0 dps</span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-axis" style="color:#64748b">|ω|</span>
+                <div class="bar-track"><div class="bar-center-line"></div><div class="bar-fill accent" id="bar-gm"></div></div>
+                <span class="bar-num" id="num-gm">0 dps</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div><!-- .row -->
+
+    <!-- Oscilloscope -->
+    <div class="card mb-3">
+      <div class="card-header d-flex align-items-center gap-2">
+        <span class="fw-semibold">Oscilloscope</span>
+        <div class="ms-auto d-flex align-items-center gap-2">
+          <label class="small text-secondary mb-0" for="timebase-select">Time</label>
+          <select id="timebase-select" class="form-select form-select-sm" style="width:auto">
+            <option value="1">1 s</option>
+            <option value="2" selected>2 s</option>
+            <option value="5">5 s</option>
+            <option value="10">10 s</option>
+            <option value="30">30 s</option>
+          </select>
+          <button id="btn-pause" class="btn btn-sm btn-outline-secondary">Pause</button>
+          <button id="btn-clear" class="btn btn-sm btn-outline-secondary">Clear</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div id="channel-legend" class="mb-2 d-flex flex-wrap gap-1"></div>
+        <canvas id="scope-canvas"></canvas>
+      </div>
+    </div>
+
+    <!-- CSV Recording -->
+    <div class="card mb-3">
+      <div class="card-header d-flex align-items-center gap-2">
+        <span class="fw-semibold">CSV Recording</span>
+        <div class="ms-auto d-flex align-items-center gap-2">
+          <span id="record-count" class="small text-secondary font-monospace">0 frames</span>
+          <button id="btn-record" class="btn btn-sm btn-outline-danger">● Record</button>
+          <button id="btn-download" class="btn btn-sm btn-outline-secondary" disabled>↓ Download</button>
+        </div>
+      </div>
+      <div class="card-body py-2">
+        <p class="text-secondary small mb-0">
+          Columns: frame_index · timestamp_ms · gyro x/y/z (dps) · accel x/y/z (g) · pitch · roll · yaw · button
+        </p>
+      </div>
+    </div>
+
+    <!-- Packet inspector -->
+    <div class="card">
+      <div class="card-header fw-semibold">Packet Inspector</div>
+      <div class="card-body p-2">
+        <div id="packet-log"></div>
+      </div>
+    </div>
+
+  </div><!-- #view-scope -->
+
+  <!-- ── Games view ─────────────────────────────────────────────────────────── -->
+  <div id="view-games" class="d-none">
+
+    <div class="position-relative" id="game-area">
+
+      <!-- Connect overlay -->
+      <div id="connect-overlay" class="game-connect-overlay">
+        <div class="text-center px-3">
+          <div class="display-1 mb-3">🎮</div>
+          <h5 class="fw-semibold">Connect your Triki to play</h5>
+          <p class="text-secondary small mb-0">Use the Connect button above to pair via Bluetooth.</p>
+        </div>
+      </div>
+
+      <!-- Game picker -->
+      <div id="game-picker" class="row g-3">
+        <div class="col-sm-6">
+          <div class="card h-100 game-pick-card" id="pick-gunslinger" role="button" tabindex="0">
+            <div class="card-body text-center py-5">
+              <div class="display-2">🤠</div>
+              <h4 class="fw-bold mt-3">Gunslinger</h4>
+              <p class="text-secondary small mb-0">Wait for the LED signal, then draw as fast as you can.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-6">
+          <div class="card h-100 game-pick-card" id="pick-catchegg" role="button" tabindex="0">
+            <div class="card-body text-center py-5">
+              <div class="display-2">🥚</div>
+              <h4 class="fw-bold mt-3">Catch an Egg</h4>
+              <p class="text-secondary small mb-0">Toss the capsule high and catch it as gently as possible.</p>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Events + sensor bars panel -->
-    <div class="col-lg-6">
-      <div class="card h-100">
-        <div class="card-header fw-semibold">Live data</div>
-        <div class="card-body">
-
-          <!-- Gesture pills -->
-          <div class="d-flex flex-wrap gap-2 mb-3">
-            <span class="gesture-pill" id="pill-tap">TAP / IMPACT</span>
-            <span class="gesture-pill" id="pill-freefall">FREE-FALL</span>
-            <span class="gesture-pill" id="pill-shake">SHAKE</span>
-            <span class="gesture-pill" id="pill-spin">SPIN</span>
+      <!-- Gunslinger panel -->
+      <div id="gunslinger-panel" class="d-none">
+        <div class="card">
+          <div class="card-header d-flex align-items-center gap-2">
+            <button id="gs-back" class="btn btn-sm btn-outline-secondary">← Games</button>
+            <span class="fw-semibold ms-1">🤠 Gunslinger</span>
           </div>
-
-          <!-- Button indicator -->
-          <div class="d-flex align-items-center gap-2 mb-3 small text-secondary">
-            <span id="btn-indicator-dot" class="btn-indicator-dot"></span>
-            <span id="btn-indicator-label">Button</span>
-          </div>
-
-          <!-- Sensor bars -->
-          <div id="sensor-bars">
-            <div class="bar-group-label">Accelerometer (g) — range ±4</div>
-            <div class="bar-row">
-              <span class="bar-axis" style="color:#22c55e">X</span>
-              <div class="bar-track"><div class="bar-center-line"></div><div class="bar-fill" id="bar-ax"></div></div>
-              <span class="bar-num" id="num-ax">0.000 g</span>
-            </div>
-            <div class="bar-row">
-              <span class="bar-axis" style="color:#3b82f6">Y</span>
-              <div class="bar-track"><div class="bar-center-line"></div><div class="bar-fill" id="bar-ay"></div></div>
-              <span class="bar-num" id="num-ay">0.000 g</span>
-            </div>
-            <div class="bar-row">
-              <span class="bar-axis" style="color:#06b6d4">Z</span>
-              <div class="bar-track"><div class="bar-center-line"></div><div class="bar-fill" id="bar-az"></div></div>
-              <span class="bar-num" id="num-az">0.000 g</span>
-            </div>
-            <div class="bar-row">
-              <span class="bar-axis" style="color:#64748b">|a|</span>
-              <div class="bar-track"><div class="bar-center-line"></div><div class="bar-fill accent" id="bar-am"></div></div>
-              <span class="bar-num" id="num-am">0.000 g</span>
-            </div>
-
-            <div class="bar-group-label">Gyroscope (dps) — range ±500</div>
-            <div class="bar-row">
-              <span class="bar-axis" style="color:#f59e0b">X</span>
-              <div class="bar-track"><div class="bar-center-line"></div><div class="bar-fill" id="bar-gx"></div></div>
-              <span class="bar-num" id="num-gx">0 dps</span>
-            </div>
-            <div class="bar-row">
-              <span class="bar-axis" style="color:#a855f7">Y</span>
-              <div class="bar-track"><div class="bar-center-line"></div><div class="bar-fill" id="bar-gy"></div></div>
-              <span class="bar-num" id="num-gy">0 dps</span>
-            </div>
-            <div class="bar-row">
-              <span class="bar-axis" style="color:#ef4444">Z</span>
-              <div class="bar-track"><div class="bar-center-line"></div><div class="bar-fill" id="bar-gz"></div></div>
-              <span class="bar-num" id="num-gz">0 dps</span>
-            </div>
-            <div class="bar-row">
-              <span class="bar-axis" style="color:#64748b">|ω|</span>
-              <div class="bar-track"><div class="bar-center-line"></div><div class="bar-fill accent" id="bar-gm"></div></div>
-              <span class="bar-num" id="num-gm">0 dps</span>
-            </div>
-          </div>
-
+          <div class="card-body" id="gunslinger-body"></div>
         </div>
       </div>
-    </div>
-  </div><!-- .row -->
 
-  <!-- Oscilloscope -->
-  <div class="card mb-3">
-    <div class="card-header d-flex align-items-center gap-2">
-      <span class="fw-semibold">Oscilloscope</span>
-      <div class="ms-auto d-flex align-items-center gap-2">
-        <label class="small text-secondary mb-0" for="timebase-select">Time</label>
-        <select id="timebase-select" class="form-select form-select-sm" style="width:auto">
-          <option value="1">1 s</option>
-          <option value="2" selected>2 s</option>
-          <option value="5">5 s</option>
-          <option value="10">10 s</option>
-          <option value="30">30 s</option>
-        </select>
-        <button id="btn-pause" class="btn btn-sm btn-outline-secondary">Pause</button>
-        <button id="btn-clear" class="btn btn-sm btn-outline-secondary">Clear</button>
+      <!-- Catch-an-Egg panel -->
+      <div id="catch-egg-panel" class="d-none">
+        <div class="card">
+          <div class="card-header d-flex align-items-center gap-2">
+            <button id="ce-back" class="btn btn-sm btn-outline-secondary">← Games</button>
+            <span class="fw-semibold ms-1">🥚 Catch an Egg</span>
+          </div>
+          <div class="card-body" id="catch-egg-body"></div>
+        </div>
       </div>
-    </div>
-    <div class="card-body">
-      <div id="channel-legend" class="mb-2 d-flex flex-wrap gap-1"></div>
-      <canvas id="scope-canvas"></canvas>
-    </div>
-  </div>
 
-  <!-- CSV Recording -->
-  <div class="card mb-3">
-    <div class="card-header d-flex align-items-center gap-2">
-      <span class="fw-semibold">CSV Recording</span>
-      <div class="ms-auto d-flex align-items-center gap-2">
-        <span id="record-count" class="small text-secondary font-monospace">0 frames</span>
-        <button id="btn-record" class="btn btn-sm btn-outline-danger">● Record</button>
-        <button id="btn-download" class="btn btn-sm btn-outline-secondary" disabled>↓ Download</button>
-      </div>
-    </div>
-    <div class="card-body py-2">
-      <p class="text-secondary small mb-0">
-        Columns: frame_index · timestamp_ms · gyro x/y/z (dps) · accel x/y/z (g) · pitch · roll · yaw · button
-      </p>
-    </div>
-  </div>
-
-  <!-- Packet inspector -->
-  <div class="card">
-    <div class="card-header fw-semibold">Packet Inspector</div>
-    <div class="card-body p-2">
-      <div id="packet-log"></div>
-    </div>
-  </div>
+    </div><!-- #game-area -->
+  </div><!-- #view-games -->
 
 </div><!-- .container-fluid -->
 
+<footer class="text-center py-3 mt-2 border-top text-secondary small">
+  <a href="https://github.com/zworek/trikiscope-web" class="text-secondary d-inline-flex align-items-center gap-2" target="_blank" rel="noopener">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+    </svg>
+    github.com/zworek/trikiscope-web
+  </a>
+</footer>
+
 <script src="vendor/bootstrap.bundle.min.js"></script>
-<script type="module" src="scope.js"></script>
+<script type="module" src="app.js"></script>
 <script>
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 </script>

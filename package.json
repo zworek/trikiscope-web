@@ -1,5 +1,5 @@
 {
-  "name": "trikishow-scope",
+  "name": "trikiscope-web",
   "version": "1.0.0",
   "private": true,
   "description": "Bluetooth IMU oscilloscope for the Triki BLE controller",

@@ -233,6 +233,49 @@
   border-color: var(--bs-danger);
 }
 
+/* ── Connect overlay ─────────────────────────────────────────────────────── */
+.game-connect-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+  background: rgba(var(--bs-body-bg-rgb, 33 37 41) / .72);
+  backdrop-filter: blur(12px) grayscale(1);
+  border-radius: var(--bs-border-radius);
+}
+.game-connect-overlay.d-none { display: none !important; }
+
+.game-area-locked > :not(.game-connect-overlay) {
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ── Game picker cards ───────────────────────────────────────────────────── */
+.game-pick-card {
+  cursor: pointer;
+  transition: border-color .15s, background-color .15s;
+}
+.game-pick-card:hover,
+.game-pick-card:focus {
+  border-color: var(--bs-primary);
+  background: rgba(var(--bs-primary-rgb), .06);
+  outline: none;
+}
+
+/* ── Games ───────────────────────────────────────────────────────────────── */
+.ce-egg-float {
+  display: inline-block;
+  animation: egg-float .6s ease-in-out infinite alternate;
+}
+
+@keyframes egg-float {
+  from { transform: translateY(-6px); }
+  to   { transform: translateY(6px);  }
+}
+
 /* ── Packet log ──────────────────────────────────────────────────────────── */
 #packet-log { min-height: 56px; }
 .packet-row {

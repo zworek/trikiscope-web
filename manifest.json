@@ -1,5 +1,5 @@
 {
-  "name": "TrikiScope",
+  "name": "TrikiScope-Web",
   "short_name": "TrikiScope",
   "description": "Bluetooth IMU oscilloscope for the Triki BLE controller",
   "start_url": ".",

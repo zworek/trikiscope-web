@@ -1,6 +1,6 @@
-const CACHE = 'trikishow-v1';
+const CACHE = 'trikiscope-web-v1';
 const PRECACHE = [
-  '.', 'index.html', 'scope.js', 'triki.js', 'style.css',
+  '.', 'index.html', 'app.js', 'scope.js', 'games.js', 'triki.js', 'style.css',
   'manifest.json', 'icon.svg', 'icon-192.png', 'icon-512.png',
   'vendor/bootstrap.min.css', 'vendor/bootstrap.bundle.min.js',
 ];

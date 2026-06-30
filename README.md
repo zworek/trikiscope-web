@@ -23,6 +23,9 @@ Zawiera manifest PWA i service worker — po załadowaniu z HTTPS można zainsta
 - **Paski sensorów** — wartości na żywo wszystkich sześciu osi plus magnitudy |a| i |ω|
 - **LED** — sterowanie diodą na kapslu (toggle)
 - **Nagrywanie CSV** — zapis strumienia IMU do pliku (frame index, timestamp, gyro, accel, kąty, przycisk)
+- **Gry** — zakładka z minigrami sterowanymi fizycznym kapslem:
+  - **Gunslinger** — zareaguj na sygnał LED tak szybko jak możesz (pomiar w ms)
+  - **Catch an Egg** — rzuć kapslem jak najwyżej i złap jak najdelikatniej (czas lotu × jakość złapania)
 - **PWA** — instalowalny jako aplikacja desktopowa/mobilna, pełen offline dzięki service workerowi
 
 ## Wymagania
@@ -67,11 +70,18 @@ Na `localhost` service worker działa (cache, offline), ale przycisk instalacji 
 
 1. Wybierz **ODR** (domyślnie 208 Hz) — można zmienić tylko przed połączeniem
 2. Naciśnij **Connect** i wybierz „Triki" z systemowego dialogu BLE
-3. Przytrzymaj kapsel nieruchomo przez ~1 s — auto-kalibracja zeruje orientację
-4. **Reset zero** — zeruje orientację ponownie w dowolnym momencie
-5. **LED** — zapala/gasi diodę na kapslu
-6. **Pause / Clear** — zatrzymuje / czyści oscyloskop
-7. **● Record → ↓ Download** — nagrywa strumień IMU i pobiera plik CSV
+3. Przełączaj między zakładkami **Oscilloscope** i **🎮 Games** — połączenie BLE pozostaje aktywne
+
+**Oscyloskop:**
+- Przytrzymaj kapsel nieruchomo przez ~1 s — auto-kalibracja zeruje orientację
+- **Reset zero** — zeruje orientację ponownie w dowolnym momencie
+- **LED** — zapala/gasi diodę na kapslu
+- **Pause / Clear** — zatrzymuje / czyści oscyloskop
+- **● Record → ↓ Download** — nagrywa strumień IMU i pobiera plik CSV
+
+**Gry:**
+- Wybierz grę z menu, a następnie graj używając fizycznego przycisku na kapslu
+- Przycisk na kapslu służy jako start/akcja w obu grach
 
 ### ODR (Output Data Rate)
 
@@ -90,9 +100,11 @@ Na `localhost` service worker działa (cache, offline), ale przycisk instalacji 
 trikishow-scope/
 ├── triki.js          Biblioteka BLE: TrikiDevice, FrameParser, MadgwickAHRS,
 │                     VisualOrientationMapper, GestureDetector, ODR_PRESETS
-├── scope.js          Aplikacja: oscyloskop, obsługa UI, nagrywanie CSV
-├── index.html        Interfejs (Bootstrap 5.3 dark)
-├── style.css         Style własne: 3D box, paski sensorów, piguły gestów
+├── app.js            Punkt wejścia SPA: wspólne BLE UI, nawigacja między widokami
+├── scope.js          Widok oscyloskopu: kanwas, nagrywanie CSV, paski sensorów
+├── games.js          Widok gier: Gunslinger, Catch an Egg
+├── index.html        Interfejs (Bootstrap 5.3 dark, SPA)
+├── style.css         Style własne: 3D box, paski sensorów, piguły gestów, gry
 ├── sw.js             Service worker (cache-first, pełen offline)
 ├── manifest.json     Manifest PWA
 ├── icon.svg          Ikona aplikacji (SVG)
