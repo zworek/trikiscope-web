@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#212529">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <title>TrikiScope</title>
+  <link rel="stylesheet" href="vendor/bootstrap.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar bg-body-tertiary border-bottom mb-3">
+  <div class="container-fluid">
+    <span class="navbar-brand fw-bold mb-0">TrikiScope</span>
+    <small class="text-secondary">Bluetooth IMU oscilloscope</small>
+  </div>
+</nav>
+
+<div class="container-fluid px-3 pb-5">
+
+  <!-- BLE card -->
+  <div class="card mb-3">
+    <div class="card-body d-flex flex-wrap align-items-center gap-2 py-2">
+      <span id="status-dot" class="status-dot"></span>
+      <span id="status-label" class="fw-semibold">Not connected</span>
+      <span id="pps-badge" class="badge text-bg-success d-none">0 pps</span>
+      <div class="ms-auto d-flex gap-2 align-items-center">
+        <select id="odr-select" class="form-select form-select-sm" style="width:auto"></select>
+        <button id="btn-connect" class="btn btn-success btn-sm">Connect</button>
+      </div>
+    </div>
+    <div id="device-info-row" class="d-none border-top px-3 py-2 flex-wrap gap-3 small text-secondary">
+      <span>Device: <span id="info-name" class="text-body">—</span></span>
+      <span>FW: <span id="info-fw" class="text-body">—</span></span>
+      <span>S/N: <span id="info-sn" class="text-body">—</span></span>
+      <span>Battery: <span id="info-bat" class="text-body">—</span></span>
+    </div>
+  </div>
+
+  <!-- Orientation | Events -->
+  <div class="row g-3 mb-3">
+
+    <!-- Orientation panel -->
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-header d-flex align-items-center gap-2">
+          <span class="fw-semibold">Orientation</span>
+          <div class="ms-auto d-flex gap-2">
+            <button id="btn-led" class="btn btn-sm btn-outline-warning" disabled>LED</button>
+            <button id="btn-reset-orient" class="btn btn-sm btn-outline-secondary" disabled>Reset zero</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div id="scene-wrap">
+            <div id="scene">
+              <div id="box">
+                <div class="face front">Triki</div>
+                <div class="face back"></div>
+                <div class="face top"></div>
+                <div class="face bottom"></div>
+                <div class="face left"></div>
+                <div class="face right"></div>
+              </div>
+            </div>
+            <div id="calib-overlay">CALIBRATING</div>
+          </div>
+          <div class="row text-center g-0 mt-2 pt-2 border-top">
+            <div class="col">
+              <div class="euler-label">Pitch</div>
+              <div class="euler-value font-monospace" id="val-pitch">0.0°</div>
+            </div>
+            <div class="col">
+              <div class="euler-label">Roll</div>
+              <div class="euler-value font-monospace" id="val-roll">0.0°</div>
+            </div>
+            <div class="col">
+              <div class="euler-label">Yaw</div>
+              <div class="euler-value font-monospace" id="val-yaw">0.0°</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Events + sensor bars panel -->
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-header fw-semibold">Live data</div>
+        <div class="card-body">
+
+          <!-- Gesture pills -->
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            <span class="gesture-pill" id="pill-tap">TAP / IMPACT</span>
+            <span class="gesture-pill" id="pill-freefall">FREE-FALL</span>
+            <span class="gesture-pill" id="pill-shake">SHAKE</span>
+            <span class="gesture-pill" id="pill-spin">SPIN</span>
+          </div>
+
+          <!-- Button indicator -->
+          <div class="d-flex align-items-center gap-2 mb-3 small text-secondary">
+            <span id="btn-indicator-dot" class="btn-indicator-dot"></span>
+            <span id="btn-indicator-label">Button</span>
+          </div>
+
+          <!-- Sensor bars -->
+          <div id="sensor-bars">
+            <div class="bar-group-label">Accelerometer (g) — range ±4</div>
+            <div class="bar-row">
+              <span class="bar-axis" style="color:#22c55e">X</span>
+              <div class="bar-track"><div class="bar-center-line"></div><div class="bar-fill" id="bar-ax"></div></div>
+              <span class="bar-num" id="num-ax">0.000 g</span>
+            </div>
+            <div class="bar-row">
+              <span class="bar-axis" style="color:#3b82f6">Y</span>
+              <div class="bar-track"><div class="bar-center-line"></div><div class="bar-fill" id="bar-ay"></div></div>
+              <span class="bar-num" id="num-ay">0.000 g</span>
+            </div>
+            <div class="bar-row">
+              <span class="bar-axis" style="color:#06b6d4">Z</span>
+              <div class="bar-track"><div class="bar-center-line"></div><div class="bar-fill" id="bar-az"></div></div>
+              <span class="bar-num" id="num-az">0.000 g</span>
+            </div>
+            <div class="bar-row">
+              <span class="bar-axis" style="color:#64748b">|a|</span>
+              <div class="bar-track"><div class="bar-center-line"></div><div class="bar-fill accent" id="bar-am"></div></div>
+              <span class="bar-num" id="num-am">0.000 g</span>
+            </div>
+
+            <div class="bar-group-label">Gyroscope (dps) — range ±500</div>
+            <div class="bar-row">
+              <span class="bar-axis" style="color:#f59e0b">X</span>
+              <div class="bar-track"><div class="bar-center-line"></div><div class="bar-fill" id="bar-gx"></div></div>
+              <span class="bar-num" id="num-gx">0 dps</span>
+            </div>
+            <div class="bar-row">
+              <span class="bar-axis" style="color:#a855f7">Y</span>
+              <div class="bar-track"><div class="bar-center-line"></div><div class="bar-fill" id="bar-gy"></div></div>
+              <span class="bar-num" id="num-gy">0 dps</span>
+            </div>
+            <div class="bar-row">
+              <span class="bar-axis" style="color:#ef4444">Z</span>
+              <div class="bar-track"><div class="bar-center-line"></div><div class="bar-fill" id="bar-gz"></div></div>
+              <span class="bar-num" id="num-gz">0 dps</span>
+            </div>
+            <div class="bar-row">
+              <span class="bar-axis" style="color:#64748b">|ω|</span>
+              <div class="bar-track"><div class="bar-center-line"></div><div class="bar-fill accent" id="bar-gm"></div></div>
+              <span class="bar-num" id="num-gm">0 dps</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div><!-- .row -->
+
+  <!-- Oscilloscope -->
+  <div class="card mb-3">
+    <div class="card-header d-flex align-items-center gap-2">
+      <span class="fw-semibold">Oscilloscope</span>
+      <div class="ms-auto d-flex align-items-center gap-2">
+        <label class="small text-secondary mb-0" for="timebase-select">Time</label>
+        <select id="timebase-select" class="form-select form-select-sm" style="width:auto">
+          <option value="1">1 s</option>
+          <option value="2" selected>2 s</option>
+          <option value="5">5 s</option>
+          <option value="10">10 s</option>
+          <option value="30">30 s</option>
+        </select>
+        <button id="btn-pause" class="btn btn-sm btn-outline-secondary">Pause</button>
+        <button id="btn-clear" class="btn btn-sm btn-outline-secondary">Clear</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div id="channel-legend" class="mb-2 d-flex flex-wrap gap-1"></div>
+      <canvas id="scope-canvas"></canvas>
+    </div>
+  </div>
+
+  <!-- CSV Recording -->
+  <div class="card mb-3">
+    <div class="card-header d-flex align-items-center gap-2">
+      <span class="fw-semibold">CSV Recording</span>
+      <div class="ms-auto d-flex align-items-center gap-2">
+        <span id="record-count" class="small text-secondary font-monospace">0 frames</span>
+        <button id="btn-record" class="btn btn-sm btn-outline-danger">● Record</button>
+        <button id="btn-download" class="btn btn-sm btn-outline-secondary" disabled>↓ Download</button>
+      </div>
+    </div>
+    <div class="card-body py-2">
+      <p class="text-secondary small mb-0">
+        Columns: frame_index · timestamp_ms · gyro x/y/z (dps) · accel x/y/z (g) · pitch · roll · yaw · button
+      </p>
+    </div>
+  </div>
+
+  <!-- Packet inspector -->
+  <div class="card">
+    <div class="card-header fw-semibold">Packet Inspector</div>
+    <div class="card-body p-2">
+      <div id="packet-log"></div>
+    </div>
+  </div>
+
+</div><!-- .container-fluid -->
+
+<script src="vendor/bootstrap.bundle.min.js"></script>
+<script type="module" src="scope.js"></script>
+<script>
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+</script>
+</body>
+</html>

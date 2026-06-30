@@ -1,0 +1,10 @@
+{
+  "name": "trikishow-scope",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Bluetooth IMU oscilloscope for the Triki BLE controller",
+  "scripts": {
+    "serve": "npx serve . -p 8080",
+    "dev": "npx live-server --port=8080 --no-browser"
+  }
+}
